@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>शेतकरी बाजारभाव</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #f4f6f3; padding: 16px; max-width: 720px; margin: 0 auto; }
+    .header { background: #1a5c2e; padding: 1rem 1.25rem; border-radius: 12px; margin-bottom: 1rem; }
+    .header h1 { color: #fff; font-size: 20px; font-weight: 500; }
+    .header p { color: #a8d5b5; font-size: 13px; margin-top: 4px; }
+    .date-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 1rem; font-size: 13px; color: #555; flex-wrap: wrap; }
+    .vibhag-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+    .vtab { padding: 5px 11px; font-size: 12px; border: 0.5px solid #ccc; border-radius: 8px; cursor: pointer; background: #fff; color: #555; white-space: nowrap; }
+    .vtab.active { background: #1a5c2e; color: #fff; border-color: #1a5c2e; }
+    .mandi-select { padding: 6px 10px; font-size: 13px; border: 0.5px solid #ccc; border-radius: 8px; background: #fff; color: #222; width: 100%; margin-bottom: 1rem; }
+    .crop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1rem; }
+    .crop-card { background: #fff; border: 0.5px solid #ddd; border-radius: 12px; padding: 1rem 1.25rem; cursor: pointer; transition: border 0.15s; }
+    .crop-card.active { border: 2px solid #1a5c2e; }
+    .crop-card .icon { font-size: 26px; margin-bottom: 4px; }
+    .crop-card .name { font-size: 14px; font-weight: 500; color: #222; }
+    .crop-card .price-main { font-size: 24px; font-weight: 500; color: #1a5c2e; margin-top: 4px; }
+    .crop-card .price-unit { font-size: 11px; color: #888; }
+    .crop-card .change { font-size: 12px; margin-top: 4px; }
+    .up { color: #1a7a3a; } .down { color: #c0392b; }
+    .detail-panel { background: #fff; border: 0.5px solid #ddd; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+    .price-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 0.5px solid #eee; font-size: 14px; }
+    .price-row:last-child { border-bottom: none; }
+    .price-row .label { color: #777; }
+    .price-row .val { font-weight: 500; color: #222; }
+    .price-row .val.min { color: #c0392b; } .price-row .val.max { color: #1a7a3a; }
+    .mandi-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .mandi-table th { text-align: left; color: #888; font-weight: 400; padding: 6px 0; border-bottom: 0.5px solid #eee; }
+    .mandi-table td { padding: 7px 0; border-bottom: 0.5px solid #eee; color: #222; }
+    .mandi-table td.price { font-weight: 500; color: #1a5c2e; }
+    .tip-box { background: #f0f9f3; border: 0.5px solid #b6dfc4; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #1a5c2e; display: flex; gap: 8px; align-items: flex-start; }
+    .footer-note { font-size: 12px; color: #aaa; text-align: center; margin-top: 8px; }
+    .tab-bar { display: flex; gap: 6px; margin-bottom: 12px; }
+    .tab { padding: 5px 12px; font-size: 13px; border: 0.5px solid #ccc; border-radius: 8px; cursor: pointer; background: #fff; color: #777; }
+    .tab.active { background: #1a5c2e; color: #fff; border-color: #1a5c2e; }
+    .sec-label { font-size: 11px; color: #888; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1><i class="ti ti-plant-2" style="margin-right:6px"></i>शेतकरी बाजारभाव</h1>
+  <p>सोयाबीन · कापूस | महाराष्ट्र | आजचे ताजे भाव</p>
+</div>
+
+<div class="date-bar">
+  <i class="ti ti-calendar" style="font-size:15px"></i>
+  <span id="today-date"></span>
+</div>
+
+<div class="sec-label">विभाग निवडा</div>
+<div class="vibhag-tabs" id="vibhag-tabs"></div>
+
+<div class="sec-label">जिल्हा निवडा</div>
+<select class="mandi-select" id="mandi-sel"></select>
+
+<div class="crop-grid">
+  <div class="crop-card active" id="card-soya" onclick="selectCrop('soya')">
+    <div class="icon">🌱</div>
+    <div class="name">सोयाबीन</div>
+    <div class="price-main" id="soya-price">—</div>
+    <div class="price-unit">प्रति क्विंटल</div>
+    <div class="change up"><i class="ti ti-arrow-up"></i> +₹80 आज</div>
+  </div>
+  <div class="crop-card" id="card-kapus" onclick="selectCrop('kapus')">
+    <div class="icon">🌿</div>
+    <div class="name">कापूस</div>
+    <div class="price-main" id="kapus-price">—</div>
+    <div class="price-unit">प्रति क्विंटल</div>
+    <div class="change down"><i class="ti ti-arrow-down"></i> -₹50 आज</div>
+  </div>
+</div>
+
+<div class="detail-panel">
+  <div class="tab-bar">
+    <div class="tab active" onclick="setTab('today')">आजचे भाव</div>
+    <div class="tab" onclick="setTab('mandi')">सर्व जिल्हे</div>
+    <div class="tab" onclick="setTab('tip')">शेतकरी सल्ला</div>
+  </div>
+  <div id="tab-today">
+    <div style="font-size:14px;font-weight:500;color:#222;margin-bottom:8px;" id="detail-title"></div>
+    <div class="price-row"><span class="label">किमान भाव</span><span class="val min" id="d-min"></span></div>
+    <div class="price-row"><span class="label">कमाल भाव</span><span class="val max" id="d-max"></span></div>
+    <div class="price-row"><span class="label">सरासरी भाव</span><span class="val" id="d-avg"></span></div>
+    <div class="price-row"><span class="label">MSP (हमीभाव)</span><span class="val" id="d-msp"></span></div>
+    <div class="price-row"><span class="label">आवक (क्विंटल)</span><span class="val" id="d-arr"></span></div>
+  </div>
+  <div id="tab-mandi" style="display:none">
+    <table class="mandi-table">
+      <thead><tr><th>जिल्हा</th><th>विभाग</th><th>सरासरी</th><th>कमाल</th></tr></thead>
+      <tbody id="mandi-body"></tbody>
+    </table>
+  </div>
+  <div id="tab-tip" style="display:none">
+    <div class="tip-box">
+      <i class="ti ti-bulb" style="font-size:18px;flex-shrink:0;margin-top:1px"></i>
+      <span id="tip-text"></span>
+    </div>
+  </div>
+</div>
+
+<p class="footer-note"><i class="ti ti-info-circle" style="font-size:13px;vertical-align:-1px"></i> भाव दररोज सकाळी अपडेट होतात · स्रोत: महाराष्ट्र राज्य कृषी पणन मंडळ</p>
+
+<script>
+const vibhag = {
+  'अमरावती':              ['अमरावती','अकोला','वाशीम','बुलढाणा','यवतमाळ'],
+  'नागपूर':               ['नागपूर','वर्धा','चंद्रपूर','गडचिरोली','भंडारा'],
+  'छत्रपती संभाजीनगर':   ['छत्रपती संभाजीनगर','लातूर','नांदेड','उस्मानाबाद','बीड','हिंगोली'],
+  'नाशिक':               ['नाशिक','जळगाव','धुळे','नंदुरबार','अहमदनगर'],
+  'पुणे':                 ['पुणे','सोलापूर','सातारा','सांगली','कोल्हापूर'],
+};
+
+function genPrices(baseAvg, baseMin, baseMax) {
+  const p = {};
+  Object.entries(vibhag).forEach(([v, jilhe]) => {
+    jilhe.forEach(j => {
+      const offset = Math.floor((Math.random()*2-1)*120);
+      p[j] = {
+        vibhag: v,
+        min: baseMin + offset - 80,
+        max: baseMax + offset + 80,
+        avg: baseAvg + offset,
+        arr: (Math.floor(Math.random()*18+4)*100).toLocaleString('en-IN')
+      };
+    });
+  });
+  return p;
+}
+
+const soyaPrices = genPrices(4600, 4350, 4780);
+const kapusPrices = genPrices(7200, 6900, 7500);
+
+const tips = {
+  soya: {
+    'अमरावती':            'अमरावती विभागात सोयाबीनचे भाव MSP पेक्षा कमी आहेत. शक्य असल्यास साठवणूक करा.',
+    'नागपूर':             'नागपूर विभागात आवक कमी असल्याने भाव थोडे स्थिर आहेत.',
+    'छत्रपती संभाजीनगर': 'मराठवाड्यात भाव दबावात आहेत. APMC नोंदणी करून विक्री करा.',
+    'नाशिक':             'नाशिक विभागात सोयाबीनची मागणी चांगली आहे.',
+    'पुणे':               'पुणे विभागात MSP जवळ भाव आहेत. थांबणे फायदेशीर ठरेल.',
+  },
+  kapus: {
+    'अमरावती':            'अमरावती विभागात कापसाचे भाव MSP पेक्षा जास्त आहेत. आत्ता विक्री फायदेशीर.',
+    'नागपूर':             'नागपूर विभागात CCI केंद्रावर विक्री करणे जास्त फायदेशीर असेल.',
+    'छत्रपती संभाजीनगर': 'मराठवाड्यात कापसाचे भाव चांगले आहेत. खाजगी व्यापाऱ्यांऐवजी CCI ला विक्री करा.',
+    'नाशिक':             'नाशिक विभागात कापसाची आवक कमी असल्याने भाव वरच्या दिशेने आहेत.',
+    'पुणे':               'पुणे विभागात भाव स्थिर आहेत. MSP पेक्षा जास्त मिळत आहे.',
+  }
+};
+
+const msp = { soya: 4892, kapus: 7121 };
+let activeCrop = 'soya';
+let activeVibhag = 'अमरावती';
+let activeJilha = 'अमरावती';
+let activeTab = 'today';
+
+function fmt(n){ return '₹'+Math.round(n).toLocaleString('en-IN'); }
+
+function buildVibhagTabs(){
+  document.getElementById('vibhag-tabs').innerHTML = Object.keys(vibhag).map(v =>
+    `<div class="vtab${v===activeVibhag?' active':''}" onclick="selectVibhag('${v}')">${v}</div>`
+  ).join('');
+}
+
+function buildJilhaSelect(){
+  document.getElementById('mandi-sel').innerHTML = vibhag[activeVibhag].map(j =>
+    `<option value="${j}"${j===activeJilha?' selected':''}>${j}</option>`
+  ).join('');
+}
+
+function selectVibhag(v){
+  activeVibhag = v;
+  activeJilha = vibhag[v][0];
+  buildVibhagTabs();
+  buildJilhaSelect();
+  update();
+}
+
+function getPrices(){ return activeCrop==='soya' ? soyaPrices : kapusPrices; }
+
+function update(){
+  const prices = getPrices();
+  const p = prices[activeJilha];
+  document.getElementById('detail-title').textContent =
+    (activeCrop==='soya'?'सोयाबीन':'कापूस')+' — '+activeJilha+' ('+p.vibhag+' विभाग)';
+  document.getElementById('d-min').textContent = fmt(p.min);
+  document.getElementById('d-max').textContent = fmt(p.max);
+  document.getElementById('d-avg').textContent = fmt(p.avg);
+  document.getElementById('d-msp').textContent = fmt(msp[activeCrop]);
+  document.getElementById('d-arr').textContent = p.arr;
+  document.getElementById('soya-price').textContent = fmt(soyaPrices[activeJilha].avg);
+  document.getElementById('kapus-price').textContent = fmt(kapusPrices[activeJilha].avg);
+  document.getElementById('tip-text').textContent = tips[activeCrop][p.vibhag] || '';
+  if(activeTab==='mandi') renderAllMandi();
+}
+
+function renderAllMandi(){
+  const prices = getPrices();
+  document.getElementById('mandi-body').innerHTML = Object.entries(prices)
+    .sort((a,b)=>b[1].avg-a[1].avg)
+    .map(([j,p])=>`<tr>
+      <td style="${j===activeJilha?'font-weight:500':''}">${j}</td>
+      <td style="color:#888;font-size:12px">${p.vibhag}</td>
+      <td class="price">${fmt(p.avg)}</td>
+      <td class="price">${fmt(p.max)}</td>
+    </tr>`).join('');
+}
+
+function selectCrop(crop){
+  activeCrop = crop;
+  document.getElementById('card-soya').classList.toggle('active', crop==='soya');
+  document.getElementById('card-kapus').classList.toggle('active', crop==='kapus');
+  update();
+}
+
+function setTab(tab){
+  activeTab = tab;
+  document.getElementById('tab-today').style.display = tab==='today'?'block':'none';
+  document.getElementById('tab-mandi').style.display = tab==='mandi'?'block':'none';
+  document.getElementById('tab-tip').style.display = tab==='tip'?'block':'none';
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active',['today','mandi','tip'][i]===tab);
+  });
+  if(tab==='mandi') renderAllMandi();
+}
+
+document.getElementById('mandi-sel').addEventListener('change', function(){
+  activeJilha = this.value;
+  update();
+});
+
+const today = new Date();
+document.getElementById('today-date').textContent =
+  today.toLocaleDateString('mr-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+buildVibhagTabs();
+buildJilhaSelect();
+update();
+</script>
+</body>
+</html>
